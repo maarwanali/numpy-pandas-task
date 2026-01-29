@@ -22,13 +22,13 @@
 # ## Проведите анализ данных при помощи Pandas выполнив поставленные задачи.
 # #### 
 
-# In[2]:
+# In[1]:
 
 
 import pandas as pd
 
 
-# In[3]:
+# In[2]:
 
 
 # загружаем датасет
@@ -82,13 +82,13 @@ print(f"Less then or equal 50k: Age avarage is {less_or_eq_50_k['mean']}, std is
 
 # **6. Правда ли, что люди, которые получают больше 50k, имеют минимум высшее образование? (признак *education – Bachelors, Prof-school, Assoc-acdm, Assoc-voc, Masters* или *Doctorate*)**
 
-# In[17]:
+# In[7]:
 
 
 df['education'].value_counts()
 
 
-# In[20]:
+# In[9]:
 
 
 # your code
@@ -103,9 +103,19 @@ else:
     print('Assumption is False')
 
 
+# In[10]:
+
+
+salary_mask = df['salary'] == '>50K'
+if df.loc[salary_mask, 'education'].isin(educations).all():
+    print('Assumption is true')
+else:
+    print('Assumption is False')
+
+
 # **7. Выведите статистику возраста для каждой расы (признак *race*) и каждого пола. Используйте *groupby* и *describe*. Найдите таким образом максимальный возраст мужчин расы *Asian-Pac-Islander*.**
 
-# In[28]:
+# In[12]:
 
 
 # your code
@@ -115,30 +125,30 @@ static_age_by_sex = df[['age', 'sex']].groupby('sex').describe()
 print(static_age_by_race)
 print(static_age_by_sex)
 
+max_age_men_asian = df.loc[ (df['sex'] == 'Male') & (df['race'] == 'Asian-Pac-Islander'), 'age' ].max()
 
-print(f"максимальный возраст мужчин расы Asian-Pac-Islander : {static_age_by_race.loc['Asian-Pac-Islander', ('age', 'max')]}")
+print(f"максимальный возраст мужчин расы Asian-Pac-Islander : {max_age_men_asian}")
 
 
 # **8. Среди кого больше доля зарабатывающих много (>50K): среди женатых или холостых мужчин (признак *marital-status*)? Женатыми считаем тех, у кого *marital-status* начинается с *Married* (Married-civ-spouse, Married-spouse-absent или Married-AF-spouse), остальных считаем холостыми.**
 
-# In[35]:
+# In[16]:
 
 
 # your code
-df['marital-status'].value_counts()
 married_status =['Married-civ-spouse', 'Married-spouse-absent' ,'Married-AF-spouse']
-
-p_married = ((df['marital-status'].isin(married_status)) & (df['salary'] == '>50K')).mean()
-p_unmarried = ((~df['marital-status'].isin(married_status)) & (df['salary'] == '>50K')).mean()
+df_men = df[df['sex'] == 'Male'].copy()
+p_married = ((df_men['marital-status'].isin(married_status)) & (df_men['salary'] == '>50K')).mean()
+p_unmarried = ((~df_men['marital-status'].isin(married_status)) & (df_men['salary'] == '>50K')).mean()
 
 indecator = p_married/p_unmarried
 print(indecator) # if indecator > 1 means the married poeple is more then unmarried
 
 # Other way my adding new column and group by it
 
-df['is_married'] = df['marital-status'].isin(married_status)
+df_men['is_married'] = df_men['marital-status'].isin(married_status)
 
-result = df.groupby('is_married')['salary'].apply(lambda s: (s == '>50K').mean())
+result = df_men.groupby('is_married')['salary'].apply(lambda s: (s == '>50K').mean())
 result
 
 
@@ -204,17 +214,23 @@ counts.idxmax()
 
 # **14. Сгруппируйте людей по типу занятости (колонка occupation) и определите количество людей в каждой группе. После чего напишите функциюю фильтрации filter_func, которая будет возвращать только те группы, в которых средний возраст (колонка age) не больше 40 и в которых все работники отрабатывают более 5 часов в неделю (колонка hours-per-week)**
 
-# In[23]:
+# In[17]:
 
 
 # your code
 groups_size = df.groupby('occupation').size()
 
 def filter_func(group):
-    return ( group['age'].mean() <40) and (group['hours-per-week'].min() >5 )
+    return ( group['age'].mean() <= 40) and (group['hours-per-week'].min() >5 )
 
 filterd_group = df.groupby('occupation').filter(filter_func)
 
 print(groups_size)
 print(filterd_group)
+
+
+# In[ ]:
+
+
+
 
